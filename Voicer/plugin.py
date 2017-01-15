@@ -70,21 +70,16 @@ class Voicer(callbacks.Plugin):
         if irc.isChannel(msg.args[0]):
             channel = msg.args[0]
             said = ircmsgs.prettyPrint(msg)
-            #irc.queueMsg(ircmsgs.privmsg('#Mail', str(dict(self.nicks))))
-            #irc.noReply()
             nick = msg.nick
             schedname = str(channel.strip('#'))+str(nick)
             voices = irc.state.channels[channel].voices
+            if nick not in voices:
+                irc.queueMsg(ircmsgs.voice(channel, nick))
+                irc.noReply()
             if schedname not in self.nicks:
-                if nick not in voices:
-                    irc.queueMsg(ircmsgs.voice(channel, nick))
-                    irc.noReply()
                 sched.addEvent(self.deVoice, time.time()+self.delay, schedname, (irc,channel,nick,schedname))
             else:
                 #self.sched.rescheduleEvent(schedname, time.time()+10) # does not work because the arguments get lost in this function
-                if nick not in voices:
-                    irc.queueMsg(ircmsgs.voice(channel, nick))
-                    irc.noReply()
                 sched.removeEvent(schedname)
                 sched.addEvent(self.deVoice, time.time()+self.delay, schedname, (irc,channel,nick,schedname))
             self.nicks[schedname] = datetime.datetime.now()
